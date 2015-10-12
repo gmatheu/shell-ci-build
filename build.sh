@@ -8,7 +8,6 @@ success() {
 
 fail() {
   printf "\r\033[2K  [\033[0;31mFAIL\033[0m] Linting %s...\n" "$1"
-  grep message "$2"
   exit 1
 }
 
@@ -17,7 +16,10 @@ check() {
   local build_dir=build/$script
   local checkstyle_file="build/$script/checkstyle.xml" 
   mkdir -p "$build_dir"
-  shellcheck --format checkstyle "$script" > "$checkstyle_file" || fail "$script" "$checkstyle_file"
+  shellcheck "$script" || {
+    shellcheck --format checkstyle "$script" > "$checkstyle_file" || echo
+    fail "$script";
+  }
   success "$script"
 }
 
