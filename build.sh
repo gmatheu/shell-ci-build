@@ -12,15 +12,15 @@ fail() {
 }
 
 check() {
-  local script="$1"
-  local build_dir=build/$script
-  local checkstyle_file="build/$script/checkstyle.xml" 
+  local scripts=( "$@" )
+  local build_dir=build
   mkdir -p "$build_dir"
-  shellcheck "$script" || {
-    shellcheck --format checkstyle "$script" > "$checkstyle_file" || echo
-    fail "$script";
+  shellcheck "${scripts[@]}" || {
+    shellcheck --format checkstyle "${scripts[@]}" > "$build_dir/checkstyle.xml" || echo
+    fail "${scripts[@]}";
   }
-  success "$script"
+  success "${scripts[@]}"
+
 }
 
 find_prunes() {
@@ -34,18 +34,13 @@ find_prunes() {
 }
 
 find_cmd() {
-  echo "find . -type f -and \( -perm +111 -or -name '*.sh' \) $(find_prunes)"
+  echo 'grep -rlw . --include=\*.{sh,zsh,bash} -e"#\!.*[sh]"'
 }
 
-check_all_executables() {
+check_all() {
   echo "Linting all executables and .sh files, ignoring files inside git modules..."
-  eval "$(find_cmd)" | while read script; do
-    head=$(head -n1 "$script")
-    [[ "$head" =~ .*ruby.* ]] && continue
-    [[ "$head" =~ .*zsh.* ]] && continue
-    [[ "$head" =~ ^#compdef.* ]] && continue
-    check "$script"
-  done
+  local files=( "$(eval "$(find_cmd)")" )
+  check ${files[@]}
 }
 
-check_all_executables
+check_all

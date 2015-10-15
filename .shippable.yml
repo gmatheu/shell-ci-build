@@ -1,8 +1,8 @@
 language: ruby
 install:
-  - ./install.sh
+  - make bootstrap
 script:
-  - ./build.sh
+  - make test
 notifications:
   email: false
 sudo: required
